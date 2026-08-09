@@ -1,5 +1,7 @@
 # Anime Wallpaper Upscaler
 
+![左侧为普通放大，右侧为官方 Real-ESRGAN NCNN/Vulkan 4x 超分的同一张动漫图片](docs/assets/promotion/anime-4x-comparison.png)
+
 ## 暂停喜欢的一帧，把它留在桌面。
 
 **番剧截图一键超分，自动生成适配当前屏幕、保留完整构图的高清 Windows 壁纸。** 完成首次
