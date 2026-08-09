@@ -1,5 +1,7 @@
 # Anime Wallpaper Upscaler
 
+![The same anime image enlarged normally on the left and upscaled 4x with official Real-ESRGAN NCNN/Vulkan on the right](docs/assets/promotion/anime-4x-comparison.png)
+
 ## Pause a frame. Keep it on your desktop.
 
 **Turn anime screenshots into screen-ready Windows wallpapers while preserving the complete

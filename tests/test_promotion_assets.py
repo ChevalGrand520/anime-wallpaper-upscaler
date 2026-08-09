@@ -10,6 +10,7 @@ from PIL import Image, ImageChops, ImageDraw, ImageStat
 ROOT = Path(__file__).parents[1]
 PROMOTION = ROOT / "docs" / "assets" / "promotion"
 SOCIAL_PREVIEW_SHA256 = "3e39ea5252c895ba21be484a92d3fc8ce09960cbf26f5cb0649966d5082ed95e"
+HERO_COMPARISON_SHA256 = "e21c73ec693dec51c5053ccc0788d552b8e1f1e6a68e026aa8e9e0f1e1a5c4c4"
 
 CASES = [
     ("k-on-source-721x406.jpg", (721, 406), "0cac28576ba219aeaec8bed9378f71dc3e0a7d31b1f4923acc0b72a0230052a3"),
@@ -31,6 +32,22 @@ def test_checked_in_promotion_asset_matches_verified_source(
         assert rendered.size == size
         assert rendered.getbbox() is not None
         assert sum(ImageStat.Stat(rendered).var) > 100
+
+
+def test_readmes_lead_with_the_4x_comparison() -> None:
+    asset = PROMOTION / "anime-4x-comparison.png"
+    assert sha256(asset.read_bytes()).hexdigest() == HERO_COMPARISON_SHA256
+    with Image.open(asset) as image:
+        rendered = image.convert("RGB")
+        assert rendered.size == (1280, 720)
+        assert rendered.getbbox() is not None
+        assert sum(ImageStat.Stat(rendered).var) > 100
+
+    expected_target = "(docs/assets/promotion/anime-4x-comparison.png)"
+    for readme_name in ("README.md", "README.zh-CN.md"):
+        lines = (ROOT / readme_name).read_text(encoding="utf-8").splitlines()
+        first_image = next(line for line in lines if line.startswith("!["))
+        assert expected_target in first_image
 
 
 def test_promotion_evidence_and_notice_are_explicit() -> None:
