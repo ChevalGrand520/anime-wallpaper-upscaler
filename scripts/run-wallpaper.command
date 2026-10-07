@@ -12,17 +12,4 @@ if [[ "$#" -eq 0 ]]; then
     read -r -p "Image or folder path (without quotes): " source
     set -- "$source"
 fi
-scale=4
-if [[ -t 0 ]]; then
-    read -r -p "Scale 2/3/4 [4]: " scale
-    scale="${scale:-4}"
-fi
-case "$scale" in
-    2|3|4) ;;
-    *) echo "Scale must be 2, 3, or 4." >&2; exit 2 ;;
-esac
-inputs=()
-for source in "$@"; do
-    inputs+=(--input "$source")
-done
-exec "$root/.venv/bin/python" "$root/scripts/upscale_wallpaper.py" "${inputs[@]}" --scale "$scale" --target auto --gpu auto --mode preserve
+exec "$root/.venv/bin/python" "$root/scripts/macos_launcher.py" "$@"

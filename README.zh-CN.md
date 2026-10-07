@@ -7,7 +7,7 @@
 **番剧截图一键超分，自动生成适配当前屏幕、保留完整构图的高清 Windows 壁纸。** 完成首次
 安装后，把截图拖到桌面快捷方式，选择 2x/3x/4x；工作流会在本机自动检测物理屏幕和 Vulkan GPU。
 
-- 支持 Windows 10/11；新增 macOS 命令行与 Terminal 入口（Apple Silicon／Intel 运行时）
+- 支持 Windows 10/11；macOS 支持 Finder 应用、命令行与 Terminal 入口（Apple Silicon／Intel 运行时）
 - 全程本地处理，不上传截图
 - 使用官方 Real-ESRGAN NCNN/Vulkan 推理
 - 默认保留完整构图，不悄悄裁掉边缘内容
@@ -29,14 +29,23 @@
 目录或链接会保留。运行时包含原生 arm64／x86_64 程序，通过自带 MoltenVK 使用 Metal；
 无需 CUDA、PyTorch、Homebrew 或额外 GPU 驱动。首次编译着色器可能较慢。
 
-Terminal 入口为 `./scripts/run-wallpaper.command "/图片或文件夹路径"`，会询问一次
-2／3／4 倍；双击入口会询问输入路径。macOS 入口不创建 Windows 的拖放桌面快捷方式。
+已有 Xcode Command Line Tools 时，安装器还会在 `tools/` 生成小型原生
+`Anime Wallpaper Upscaler.app`，并在桌面建立链接。把图片或文件夹拖到应用即可处理；
+双击应用可选择输入，或通过 **Scale…** 修改倍率。2／3／4 倍选择会记住，初始为 4 倍；
+处理结束后打开 Finder 并退出，不常驻后台。应用仍依赖项目内 Python 环境，并非独立、
+经过公证的发行包；移动项目后需要重新安装。安装器不安装编译器，缺少现有 Command Line
+Tools 时会跳过可选应用，Terminal 和命令行仍可使用。
+
+Terminal 入口为 `./scripts/run-wallpaper.command "/图片或文件夹路径"`，使用同一记忆倍率，
+不再每次询问；双击入口只询问输入路径。可用 `./scripts/run-wallpaper.command --set-scale 3`
+修改倍率，或 `./scripts/run-wallpaper.command --scale 3 "/图片路径/image.png"` 保存并处理。
+设置保存在 `~/Library/Application Support/Anime Wallpaper Upscaler/`；直接命令行仍固定默认 4 倍。
 两平台共用命令行参数、批处理、对比图、保留构图和 `--copy-desktop`。
 `--target auto` 检测主显示器物理分辨率，支持 Retina；也可用 `--target 2560x1664`
 手动指定。结果默认在 Finder 打开，可用 `--no-open-output` 关闭。
 
 无人值守安装需先阅读 [第三方声明](THIRD_PARTY_NOTICES.md)，再传
-`--accept-upstream-license`；`--skip-skill` 跳过 skill 注册。已有官方 ZIP 可用
+`--accept-upstream-license`；`--skip-skill` 跳过 skill 注册，`--skip-shortcut` 跳过桌面链接。已有官方 ZIP 可用
 `--archive /路径/realesrgan-ncnn-vulkan-20220424-macos.zip`，仍执行相同校验。
 若 macOS 拦截经过校验的程序，在“系统设置 → 隐私与安全性”允许该程序；保持 Gatekeeper
 开启。[本机验证记录](docs/macos-verification.md)。

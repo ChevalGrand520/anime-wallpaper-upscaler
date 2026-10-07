@@ -16,6 +16,8 @@ import urllib.request
 import zipfile
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
+from scripts.build_macos_app import build_app, register_desktop_app
 
 
 def digest(path: Path) -> str:
@@ -119,6 +121,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--accept-upstream-license", action="store_true")
     parser.add_argument("--skip-skill", action="store_true")
+    parser.add_argument("--skip-shortcut", action="store_true", help="Build the app but omit its Desktop link.")
     parser.add_argument("--archive", type=Path, help="Advanced: use a local official ZIP, still verified.")
     args = parser.parse_args(argv)
     if sys.platform != "darwin":
@@ -151,7 +154,14 @@ def main(argv: list[str] | None = None) -> int:
                 register_skill(PROJECT_ROOT, Path.home())
             except OSError as exc:
                 print(f"Warning: optional skill registration failed: {exc}", file=sys.stderr)
-        print("Setup complete. Run ./scripts/run-wallpaper.command or use the CLI.")
+        try:
+            app = build_app(PROJECT_ROOT)
+            if not args.skip_shortcut and not register_desktop_app(app, Path.home() / "Desktop"):
+                print("Warning: existing Desktop app preserved; use the app under tools/.", file=sys.stderr)
+            print(f"Drop images or folders onto: {app}")
+        except (OSError, ValueError, subprocess.SubprocessError) as exc:
+            print(f"Warning: optional Finder app could not be created: {exc}", file=sys.stderr)
+        print("Setup complete. Use the Finder app, ./scripts/run-wallpaper.command, or the CLI.")
         return 0
     except (OSError, ValueError, KeyError, zipfile.BadZipFile, subprocess.SubprocessError) as exc:
         print(f"Setup failed: {exc}", file=sys.stderr)
