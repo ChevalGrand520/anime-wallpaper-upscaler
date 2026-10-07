@@ -1,8 +1,18 @@
 # Project Nodes
 
+## Lightweight macOS entry — 2026-10-07
+
+- Branch: `feat/macos-drop-launcher`, based on merged macOS support `4760523` (PR #10).
+- Small Swift/AppKit document launcher reuses Python CLI; shares remembered 2x/3x/4x with
+  Terminal, defaults to 4x, opens output and exits. No new runtime dependency or resident service.
+- Native chooser/settings and Finder Open With passed real M5 inference. Physical mouse drop
+  remains a manual acceptance check; see `docs/macos-verification.md`. Local suite: 119 passed.
+- Build uses existing Command Line Tools; absent tools preserve Terminal/CLI fallback.
+  Moving the checkout requires rerunning setup. No standalone release or main merge authorized.
+
 ## macOS adaptation — 2026-10-07
 
-- Working branch: `feat/macos-support`; local checkout:
+- Merged PR #10 into main at `4760523`; local checkout:
   `/Users/chevalgrand/CodexWorkspace/projects/anime-wallpaper-upscaler`.
 - Added a verified official macOS universal runtime installer (`install.command`), Terminal
   launcher, platform-specific executable selection, Retina physical primary-display detection,
@@ -11,7 +21,7 @@
   with comparisons. Python suite: 103 passed locally. See `docs/macos-verification.md` for
   reproduction, evidence limits, and CI scope. Runtime/model/output files remain ignored.
 - The older Windows release records below are historical; they do not establish the current
-  status of earlier draft PRs. This work does not merge main or publish a new release.
+  status of earlier draft PRs. Both platform CI jobs passed after the merge; no new release.
 
 ## Goal
 

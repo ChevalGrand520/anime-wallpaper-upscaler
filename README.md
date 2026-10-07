@@ -8,7 +8,7 @@
 composition.** After setup, drag a screenshot onto the desktop shortcut, choose 2x/3x/4x, and the
 local workflow detects your physical screen and Vulkan GPU automatically.
 
-- Windows 10/11; macOS CLI and Terminal launcher (Apple Silicon and Intel runtime)
+- Windows 10/11; macOS Finder app, CLI and Terminal launcher (Apple Silicon and Intel runtime)
 - Local processing; screenshots are not uploaded
 - Official Real-ESRGAN NCNN/Vulkan inference
 - Full-composition wallpaper output by default
@@ -31,15 +31,27 @@ and optionally registers a Codex skill symlink. Existing skill destinations are 
 The runtime contains native arm64/x86_64 code and MoltenVK for Metal; CUDA, PyTorch, Homebrew,
 and separate GPU drivers are not required. The first shader compilation may take longer.
 
-For a Terminal launcher, run `./scripts/run-wallpaper.command "/path/to/image or folder"`;
-it asks once for scale 2/3/4. Double-clicking it asks for a path. This macOS entry point does
-not create the Windows drag/drop desktop shortcut. CLI options, batches, comparison images,
+Setup also builds a small native `Anime Wallpaper Upscaler.app` under `tools/` and links it
+on the Desktop when existing Xcode Command Line Tools are available. Drop images or folders
+onto the app, or double-click it to choose inputs or change **Scale…**. It remembers 2x/3x/4x
+(initially 4x), processes locally, opens results in Finder, and exits. There is no resident service.
+The app uses the checkout's Python environment; it is not a standalone, notarized release.
+Moving the checkout requires rerunning setup. Setup does not install a compiler; without existing
+Command Line Tools, the optional app is skipped and the Terminal/CLI entry points remain available.
+
+For a Terminal launcher, run `./scripts/run-wallpaper.command "/path/to/image or folder"`.
+It uses the same remembered scale without a repeated prompt; double-clicking asks for a path.
+Use `./scripts/run-wallpaper.command --set-scale 3` to change it, or
+`./scripts/run-wallpaper.command --scale 3 "/path/to/image.png"` to save and process.
+Preferences are stored under `~/Library/Application Support/Anime Wallpaper Upscaler/`.
+The direct CLI still defaults deterministically to 4x. CLI options, batches, comparison images,
 `preserve` mode, and `--copy-desktop` work on both platforms. `--target auto` reads the physical
 main-display resolution, including Retina panels; `--target 2560x1664` is a manual override.
 Output folders open in Finder unless `--no-open-output` is passed.
 
 For unattended setup, review [Third-Party Notices](THIRD_PARTY_NOTICES.md), then pass
-`--accept-upstream-license`; use `--skip-skill` to omit skill registration. To reuse an official
+`--accept-upstream-license`; use `--skip-skill` to omit skill registration and `--skip-shortcut`
+to omit the Desktop link. To reuse an official
 ZIP, add `--archive /path/to/realesrgan-ncnn-vulkan-20220424-macos.zip`; it receives the same checks.
 If macOS blocks the verified executable, use System Settings > Privacy & Security to allow
 that specific app. Keep Gatekeeper enabled. [Local verification](docs/macos-verification.md).

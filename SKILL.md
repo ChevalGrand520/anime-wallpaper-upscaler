@@ -29,6 +29,10 @@ Use `.venv/bin/python scripts/upscale_wallpaper.py --input "/path/to/image.png" 
 The macOS runtime executable is `realesrgan-ncnn-vulkan` (without `.exe`), with the same model
 paths. It uses bundled MoltenVK/Metal. Do not install Windows GPU drivers or disable Gatekeeper.
 The Terminal launcher is `./scripts/run-wallpaper.command "/path/to/image or folder"`.
+Finder/Terminal launchers share a remembered scale, initially 4x; `--set-scale 3` changes it.
+Agent commands should continue to pass explicit CLI options rather than relying on preferences.
+With existing Xcode Command Line Tools, setup builds a small native Finder app and Desktop link.
+It depends on the checkout and `.venv`; without those build tools, use Terminal or the CLI.
 On macOS, repair missing runtime files by rerunning `./install.command`.
 
 For ordinary Windows users, double-click `install.cmd`. The equivalent PowerShell command is:

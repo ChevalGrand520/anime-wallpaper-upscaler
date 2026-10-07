@@ -58,6 +58,23 @@ Run `.venv/bin/python scripts/verify_macos.py` after setup to reproduce the chec
   A headless cloud runner has no main display; the smoke script records the CLI's warning
   and 2560x1600 fallback explicitly. This does not establish physical-display detection there.
   Consult the PR checks for their actual remote results.
-- macOS currently offers CLI and an interactive Terminal launcher, not a native Finder
-  drag/drop application. Large-image performance and sustained batches were not benchmarked.
+- Large-image performance and sustained batches were not benchmarked.
 - No release asset, tag, or stable-branch merge is part of this verification.
+
+## Native launcher follow-up — 2026-10-07
+
+- Built and locally ad-hoc signed the Swift/AppKit application using existing Command Line
+  Tools. The local bundle occupies approximately 96 KB and uses the existing Python workflow.
+- Through the native UI, saved 2x, reopened the application, and confirmed 2x remained selected.
+  Chose a 192x108 image whose filename contains Chinese characters, quotes and `$(literal)`;
+  the actual GPU result was 384x216 and wallpaper 2560x1664. Finder opened the output folder.
+- Finder's **Open With > Anime Wallpaper Upscaler** sent a native document event, generated
+  the same valid 2x outputs, and completed without a scale prompt. Document types include images
+  and folders. Automated mouse drag attempts did not establish a successful physical drop;
+  that gesture remains a manual acceptance check, distinct from the verified document handler.
+- The launcher tests cover preferences, failed atomic writes, exact path forwarding, preserved
+  conflicts, and a real native build/sign in a quoted project path. Full local suite: 119 passed.
+- Restored the local scale to 4x after testing. CLI defaults are independent of preferences.
+- The source app needs an existing compiler to build and the checkout's `.venv` to run.
+  No compiler is installed automatically; the Terminal fallback remains available. No standalone
+  release, notarization, or Intel GUI execution has been established.
