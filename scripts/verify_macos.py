@@ -13,7 +13,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from anime_wallpaper_upscaler.system import get_primary_display_resolution
+from anime_wallpaper_upscaler.system import resolve_target
 
 
 def main() -> int:
@@ -25,9 +25,11 @@ def main() -> int:
     source = output / "small owned demo.png"
     with Image.open(ROOT / "docs/assets/demo-source-original.png") as image:
         image.convert("RGB").resize((192, 108)).save(source)
-    target = get_primary_display_resolution()
+    target, warning = resolve_target("auto")
+    if warning is not None:
+        print(f"Display fallback: {warning}", flush=True)
     receipt = {"platform": platform.platform(), "architecture": platform.machine(),
-               "target": target, "source_size": [192, 108],
+               "target": target, "target_warning": warning, "source_size": [192, 108],
                "source_sha256": hashlib.sha256(source.read_bytes()).hexdigest(), "runs": []}
     for scale in (2, 3, 4):
         directory = output / f"scale-{scale}"

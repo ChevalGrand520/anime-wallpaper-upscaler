@@ -55,6 +55,8 @@ Run `.venv/bin/python scripts/verify_macos.py` after setup to reproduce the chec
 - This local run proves M5/macOS 27 execution. The official binary includes Intel support,
   but an Intel Mac and other macOS versions were not tested locally.
 - CI adds a macOS job with the same real 2x/3x/4x checks, alongside the existing Windows job.
+  A headless cloud runner has no main display; the smoke script records the CLI's warning
+  and 2560x1600 fallback explicitly. This does not establish physical-display detection there.
   Consult the PR checks for their actual remote results.
 - macOS currently offers CLI and an interactive Terminal launcher, not a native Finder
   drag/drop application. Large-image performance and sustained batches were not benchmarked.
