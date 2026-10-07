@@ -78,3 +78,22 @@ Run `.venv/bin/python scripts/verify_macos.py` after setup to reproduce the chec
 - The source app needs an existing compiler to build and the checkout's `.venv` to run.
   No compiler is installed automatically; the Terminal fallback remains available. No standalone
   release, notarization, or Intel GUI execution has been established.
+
+## Cancellation follow-up — 2026-10-07
+
+- Cancelled a real M5 4x batch of 20 repository-owned 192x108 inputs through the native
+  **Cancel & Delete This Run's Outputs** button. The app and CLI/inference children exited;
+  the run directory was removed, all 20 inputs survived, and a pre-existing result sentinel
+  in the output root remained unchanged.
+- After adding the standard Quit menu, Command-Q cancelled another real 4x batch: all 60
+  test inputs and the previous result survived, the run directory disappeared, and no app,
+  CLI or inference process remained. A normal one-image launch completed and opened its results.
+- Automated SIGTERM/SIGINT integration checks start a CLI with both a completed output and
+  a live inference child, then verify cancellation exit 130, stopped children, removal of the
+  owned run directory, and preservation of original/previous files. Successful runs retain
+  unique outputs and open only the final folder.
+- Local full suite: 123 tests passed; native build/sign, Python compilation and whitespace
+  checks passed.
+- Only files inside the fresh owned run directory are disposable. Downloaded models/runtime
+  remain installed. Cleanup failures report an error rather than claiming success; external
+  SIGKILL/Force Quit or power loss cannot run the normal cleanup handler.

@@ -33,6 +33,10 @@ Finder/Terminal launchers share a remembered scale, initially 4x; `--set-scale 3
 Agent commands should continue to pass explicit CLI options rather than relying on preferences.
 With existing Xcode Command Line Tools, setup builds a small native Finder app and Desktop link.
 It depends on the checkout and `.venv`; without those build tools, use Terminal or the CLI.
+Finder/Terminal launches use a unique `Wallpaper Upscaler Output/run-…/` directory.
+The app's cancel button or Command-Q (Terminal: Ctrl-C) stops the inference process tree and
+deletes only that run's outputs; inputs, earlier results and downloaded dependencies survive.
+Direct CLI behavior remains separate: use its explicit options for reproducible Agent runs.
 On macOS, repair missing runtime files by rerunning `./install.command`.
 
 For ordinary Windows users, double-click `install.cmd`. The equivalent PowerShell command is:

@@ -54,11 +54,10 @@ def test_launcher_preserves_paths_and_saved_scale_without_shell(tmp_path: Path, 
     monkeypatch.setattr(preferences, "preferences_path", lambda: settings)
     preferences.save_scale(3)
     calls = []
-    monkeypatch.setattr(macos_launcher.cli, "main", lambda arguments: calls.append(arguments) or 1)
+    monkeypatch.setattr(macos_launcher, "run_cancellable", lambda paths, scale: calls.append((paths, scale)) or 1)
     paths = ["/tmp/中文 image $(literal)'\".png", "/tmp/a folder"]
     assert macos_launcher.main(["--", *paths]) == 1
-    assert calls == [["--scale", "3", "--target", "auto", "--gpu", "auto", "--mode", "preserve",
-                      "--input", paths[0], "--input", paths[1]]]
+    assert calls == [(paths, 3)]
 
 
 def test_explicit_scale_is_remembered_and_settings_do_not_process_images(tmp_path: Path,
@@ -67,7 +66,7 @@ def test_explicit_scale_is_remembered_and_settings_do_not_process_images(tmp_pat
     settings = tmp_path / "preferences.json"
     monkeypatch.setattr(preferences, "preferences_path", lambda: settings)
     scales = []
-    monkeypatch.setattr(macos_launcher.cli, "main", lambda arguments: scales.append(arguments[1]) or 0)
+    monkeypatch.setattr(macos_launcher, "run_cancellable", lambda paths, scale: scales.append(str(scale)) or 0)
     assert macos_launcher.main(["--set-scale", "2"]) == 0
     assert macos_launcher.main(["--get-scale"]) == 0
     assert scales == []
@@ -82,7 +81,7 @@ def test_failed_preference_write_is_reported_without_processing(tmp_path: Path, 
     def fail(scale: int) -> None:
         raise OSError("permission denied")
     monkeypatch.setattr(macos_launcher, "save_scale", fail)
-    monkeypatch.setattr(macos_launcher.cli, "main", lambda *a: pytest.fail("must not process"))
+    monkeypatch.setattr(macos_launcher, "run_cancellable", lambda *a: pytest.fail("must not process"))
     assert macos_launcher.main(["--set-scale", "2"]) == 2
     assert "could not save scale" in capsys.readouterr().err
 
