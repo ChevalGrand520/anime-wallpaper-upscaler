@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from anime_wallpaper_upscaler import cli
+from anime_wallpaper_upscaler.launcher_run import run_cancellable
 from anime_wallpaper_upscaler.preferences import load_scale, save_scale
 
 
@@ -42,10 +42,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         except OSError as exc:
             print(f"Error: could not save scale: {exc}", file=sys.stderr)
             return 2
-    arguments = ["--scale", str(scale), "--target", "auto", "--gpu", "auto", "--mode", "preserve"]
-    for path in args.paths:
-        arguments.extend(("--input", path))
-    return cli.main(arguments)
+    return run_cancellable(args.paths, scale)
 
 
 if __name__ == "__main__":

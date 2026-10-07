@@ -49,6 +49,15 @@ The direct CLI still defaults deterministically to 4x. CLI options, batches, com
 main-display resolution, including Retina panels; `--target 2560x1664` is a manual override.
 Output folders open in Finder unless `--no-open-output` is passed.
 
+While the app is processing, **Cancel & Delete This Run's Outputs** or **Command-Q** stops
+the CLI and inference children, then removes this run's completed images, partial files and
+logs. Original images and earlier results are preserved. Finder/Terminal launches use a fresh
+`Wallpaper Upscaler Output/run-…/` directory for each run (multiple input locations get separate
+subfolders), so cancellation cannot overwrite or delete previous results. Terminal users can
+press **Ctrl-C** for the same cleanup. Keep the app running until cleanup finishes; force-killing
+it or shutting down the machine bypasses normal cancellation. Downloaded models/runtime are
+reusable dependencies and are kept.
+
 For unattended setup, review [Third-Party Notices](THIRD_PARTY_NOTICES.md), then pass
 `--accept-upstream-license`; use `--skip-skill` to omit skill registration and `--skip-shortcut`
 to omit the Desktop link. To reuse an official

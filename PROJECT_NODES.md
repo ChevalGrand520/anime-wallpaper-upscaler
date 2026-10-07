@@ -1,5 +1,19 @@
 # Project Nodes
 
+## Cancel and clean up macOS runs — 2026-10-07
+
+- Branch: `feat/macos-cancel-cleanup`, based on merged PR #11 main `3fa055c`.
+- Native cancel button and Command-Q request Python cancellation; Terminal Ctrl-C uses the
+  same path. A dedicated process group stops CLI/inference before deleting owned run outputs.
+- Each run has a fresh output subdirectory. Original inputs, earlier results and reusable
+  dependencies are retained. Force Quit/power loss bypass normal cleanup.
+- Real M5 button cancellation preserved 20 originals and an existing result, removed current
+  outputs, and left no inference process. SIGTERM/SIGINT integration and normal success covered.
+- Standard Quit menu/Command-Q also passed real M5 cancellation with 60 preserved test inputs
+  and an old result. Local suite: 123 passed.
+- The user's old uncancellable mistaken batch was stopped and 99 verified generated files
+  (1383.2 MiB) removed; originals preserved. No stable-branch merge authorized for this fix yet.
+
 ## Lightweight macOS entry — 2026-10-07
 
 - Branch: `feat/macos-drop-launcher`, based on merged macOS support `4760523` (PR #10).

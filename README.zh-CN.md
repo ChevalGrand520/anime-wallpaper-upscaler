@@ -44,6 +44,12 @@ Terminal 入口为 `./scripts/run-wallpaper.command "/图片或文件夹路径"`
 `--target auto` 检测主显示器物理分辨率，支持 Retina；也可用 `--target 2560x1664`
 手动指定。结果默认在 Finder 打开，可用 `--no-open-output` 关闭。
 
+处理中点击 **Cancel & Delete This Run's Outputs** 或按 **⌘Q**，会先停止命令行和推理子进程，
+再删除本次已生成的图片、未完成文件和日志，保留原图及以前的结果。Finder／Terminal 每次
+使用独立的 `Wallpaper Upscaler Output/run-…/` 目录，多处输入还会分开子目录，避免覆盖旧结果。
+Terminal 中按 **Ctrl-C** 也会取消并清理。请等待清理完成；强制杀死应用或关机会绕过正常取消。
+下载的模型和运行时属于可复用依赖，会保留。
+
 无人值守安装需先阅读 [第三方声明](THIRD_PARTY_NOTICES.md)，再传
 `--accept-upstream-license`；`--skip-skill` 跳过 skill 注册，`--skip-shortcut` 跳过桌面链接。已有官方 ZIP 可用
 `--archive /路径/realesrgan-ncnn-vulkan-20220424-macos.zip`，仍执行相同校验。

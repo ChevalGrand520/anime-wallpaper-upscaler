@@ -7,12 +7,15 @@ final class Launcher: NSObject, NSApplicationDelegate {
     private var processing = false
     private var statusWindow: NSWindow?
     private var statusLabel: NSTextField?
+    private let taskLock = NSLock()
+    private var activeTask: Process?
+    private var cancelling = false
 
     private var root: String {
         Bundle.main.object(forInfoDictionaryKey: "AnimeWallpaperUpscalerProject") as? String ?? ""
     }
 
-    private func invoke(_ arguments: [String]) -> (Int32, String) {
+    private func invoke(_ arguments: [String], cancellable: Bool = false) -> (Int32, String) {
         let task = Process()
         task.executableURL = URL(fileURLWithPath: root).appendingPathComponent(".venv/bin/python")
         task.arguments = [root + "/scripts/macos_launcher.py"] + arguments
@@ -20,11 +23,23 @@ final class Launcher: NSObject, NSApplicationDelegate {
         task.standardOutput = pipe
         task.standardError = pipe
         do {
+            if cancellable { taskLock.lock() }
             try task.run()
+            if cancellable {
+                activeTask = task
+                if cancelling { task.terminate() }
+                taskLock.unlock()
+            }
             let output = pipe.fileHandleForReading.readDataToEndOfFile()
             task.waitUntilExit()
+            if cancellable {
+                taskLock.lock()
+                activeTask = nil
+                taskLock.unlock()
+            }
             return (task.terminationStatus, String(data: output, encoding: .utf8) ?? "")
         } catch {
+            if cancellable { taskLock.unlock() }
             return (2, "Could not start the local runtime. Rerun install.command.\n" + error.localizedDescription)
         }
     }
@@ -107,40 +122,55 @@ final class Launcher: NSObject, NSApplicationDelegate {
         let paths = pending
         pending.removeAll()
         processing = true
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 380, height: 110),
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 380, height: 150),
                               styleMask: [.titled], backing: .buffered, defer: false)
         window.title = "Anime Wallpaper Upscaler"
         window.isReleasedWhenClosed = false
         let label = NSTextField(labelWithString: "Processing \(paths.count) input(s) at \(currentScale())x…")
-        label.frame = NSRect(x: 24, y: 65, width: 332, height: 24)
-        let spinner = NSProgressIndicator(frame: NSRect(x: 24, y: 30, width: 332, height: 16))
+        label.frame = NSRect(x: 24, y: 110, width: 332, height: 24)
+        let spinner = NSProgressIndicator(frame: NSRect(x: 24, y: 80, width: 332, height: 16))
         spinner.style = .bar
         spinner.isIndeterminate = true
         spinner.startAnimation(nil)
         window.contentView?.addSubview(label)
         window.contentView?.addSubview(spinner)
+        let cancel = NSButton(title: "Cancel & Delete This Run's Outputs", target: self,
+                              action: #selector(cancelRun))
+        cancel.frame = NSRect(x: 24, y: 20, width: 332, height: 32)
+        window.contentView?.addSubview(cancel)
         statusLabel = label
         statusWindow = window
         window.center()
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         DispatchQueue.global(qos: .userInitiated).async {
-            let result = self.invoke(["--"] + paths)
+            let result = self.invoke(["--"] + paths, cancellable: true)
             DispatchQueue.main.async {
                 self.processing = false
                 self.statusWindow?.close()
                 self.statusWindow = nil
-                if result.0 != 0 { self.showError(result.1) }
+                if result.0 != 0 && result.0 != 130 && !(self.cancelling && result.0 == -15) {
+                    self.showError(result.1)
+                }
                 if self.pending.isEmpty { NSApp.terminate(nil) }
                 else { self.processNext() }
             }
         }
     }
 
+    @objc private func cancelRun() {
+        guard processing else { return }
+        pending.removeAll()
+        statusLabel?.stringValue = "Cancelling… deleting this run's outputs."
+        taskLock.lock()
+        cancelling = true
+        if let task = activeTask, task.isRunning { task.terminate() }
+        taskLock.unlock()
+    }
+
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        // Prevent leaving an inference child behind by closing its parent mid-run.
         if processing {
-            statusLabel?.stringValue = "Processing… Results will open in Finder."
+            cancelRun()
             return .terminateCancel
         }
         return .terminateNow
@@ -151,4 +181,14 @@ let application = NSApplication.shared
 let delegate = Launcher()
 application.delegate = delegate
 application.setActivationPolicy(.regular)
+let mainMenu = NSMenu()
+let applicationItem = NSMenuItem()
+let applicationMenu = NSMenu(title: "Anime Wallpaper Upscaler")
+let quitItem = NSMenuItem(title: "Quit Anime Wallpaper Upscaler",
+                          action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+quitItem.target = application
+applicationMenu.addItem(quitItem)
+applicationItem.submenu = applicationMenu
+mainMenu.addItem(applicationItem)
+application.mainMenu = mainMenu
 application.run()
