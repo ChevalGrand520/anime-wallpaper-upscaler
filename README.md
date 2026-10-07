@@ -8,12 +8,41 @@
 composition.** After setup, drag a screenshot onto the desktop shortcut, choose 2x/3x/4x, and the
 local workflow detects your physical screen and Vulkan GPU automatically.
 
-- Windows 10/11
+- Windows 10/11; macOS CLI and Terminal launcher (Apple Silicon and Intel runtime)
 - Local processing; screenshots are not uploaded
 - Official Real-ESRGAN NCNN/Vulkan inference
 - Full-composition wallpaper output by default
 
 [简体中文](README.zh-CN.md)
+
+## macOS setup
+
+Use a checkout of this branch; the existing Windows release ZIPs predate macOS support.
+Install Python 3.10 or newer, then double-click `install.command` or run:
+
+```bash
+./install.command
+.venv/bin/python scripts/upscale_wallpaper.py --input "/path/to/image.png" --scale 4
+```
+
+Setup asks you to review the upstream terms, downloads the pinned official macOS universal
+runtime (about 52 MB), verifies the archive and every installed model, creates a local `.venv`,
+and optionally registers a Codex skill symlink. Existing skill destinations are preserved.
+The runtime contains native arm64/x86_64 code and MoltenVK for Metal; CUDA, PyTorch, Homebrew,
+and separate GPU drivers are not required. The first shader compilation may take longer.
+
+For a Terminal launcher, run `./scripts/run-wallpaper.command "/path/to/image or folder"`;
+it asks once for scale 2/3/4. Double-clicking it asks for a path. This macOS entry point does
+not create the Windows drag/drop desktop shortcut. CLI options, batches, comparison images,
+`preserve` mode, and `--copy-desktop` work on both platforms. `--target auto` reads the physical
+main-display resolution, including Retina panels; `--target 2560x1664` is a manual override.
+Output folders open in Finder unless `--no-open-output` is passed.
+
+For unattended setup, review [Third-Party Notices](THIRD_PARTY_NOTICES.md), then pass
+`--accept-upstream-license`; use `--skip-skill` to omit skill registration. To reuse an official
+ZIP, add `--archive /path/to/realesrgan-ncnn-vulkan-20220424-macos.zip`; it receives the same checks.
+If macOS blocks the verified executable, use System Settings > Privacy & Security to allow
+that specific app. Keep Gatekeeper enabled. [Local verification](docs/macos-verification.md).
 
 ## From Screenshot to Wallpaper
 

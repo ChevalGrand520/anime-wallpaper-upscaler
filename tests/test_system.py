@@ -7,6 +7,7 @@ from anime_wallpaper_upscaler.errors import UserInputError, VulkanError
 from anime_wallpaper_upscaler.system import (
     GpuDevice,
     get_primary_display_resolution,
+    gpu_repair,
     parse_gpu_devices,
     parse_target,
     probe_gpus,
@@ -134,6 +135,4 @@ def test_probe_failure_lists_official_driver_repairs(tmp_path: Path) -> None:
         probe_gpus(tmp_path / "tool.exe", tmp_path, runner)
 
     message = str(caught.value)
-    assert "NVIDIA" in message and "nvidia.com" in message
-    assert "AMD" in message and "amd.com" in message
-    assert "Intel" in message and "intel.com" in message
+    assert gpu_repair() in message

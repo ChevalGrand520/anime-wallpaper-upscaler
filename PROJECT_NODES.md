@@ -1,5 +1,18 @@
 # Project Nodes
 
+## macOS adaptation — 2026-10-07
+
+- Working branch: `feat/macos-support`; local checkout:
+  `/Users/chevalgrand/CodexWorkspace/projects/anime-wallpaper-upscaler`.
+- Added a verified official macOS universal runtime installer (`install.command`), Terminal
+  launcher, platform-specific executable selection, Retina physical primary-display detection,
+  Finder output opening, and optional conflict-preserving Codex skill symlink registration.
+- Native Apple M5/macOS 27 runs passed real 2x/3x/4x inference and produced 2560x1664 wallpapers
+  with comparisons. Python suite: 103 passed locally. See `docs/macos-verification.md` for
+  reproduction, evidence limits, and CI scope. Runtime/model/output files remain ignored.
+- The older Windows release records below are historical; they do not establish the current
+  status of earlier draft PRs. This work does not merge main or publish a new release.
+
 ## Goal
 
 Prepare an honest, ordinary-user-friendly Windows wallpaper workflow built on the official

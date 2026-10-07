@@ -4,6 +4,7 @@ from subprocess import CompletedProcess
 import pytest
 
 from anime_wallpaper_upscaler.errors import DependencyError, VulkanError
+from anime_wallpaper_upscaler.system import gpu_repair, runtime_executable_name, runtime_repair
 from anime_wallpaper_upscaler.realesrgan import (
     RuntimeFiles,
     build_command,
@@ -16,7 +17,7 @@ from anime_wallpaper_upscaler.realesrgan import (
 def _create_runtime_files(tool_dir: Path, model_file_stem: str) -> RuntimeFiles:
     models_dir = tool_dir / "models"
     models_dir.mkdir(parents=True)
-    executable = tool_dir / "realesrgan-ncnn-vulkan.exe"
+    executable = tool_dir / runtime_executable_name()
     model_param = models_dir / f"{model_file_stem}.param"
     model_bin = models_dir / f"{model_file_stem}.bin"
     for path in (executable, model_param, model_bin):
@@ -31,10 +32,10 @@ def test_missing_runtime_lists_missing_files_and_repair_command(
         validate_runtime(tmp_path, "realesrgan-x4plus-anime", 4)
 
     message = str(caught.value)
-    assert "realesrgan-ncnn-vulkan.exe" in message
+    assert runtime_executable_name() in message
     assert "realesrgan-x4plus-anime.param" in message
     assert "realesrgan-x4plus-anime.bin" in message
-    assert r".\setup.ps1" in message
+    assert runtime_repair() in message
     assert "--tool-dir" in message
 
 
@@ -208,9 +209,7 @@ def test_run_upscale_maps_vulkan_failures_to_driver_repairs(
 
     message = str(caught.value)
     assert diagnostic in message
-    assert "NVIDIA" in message and "nvidia.com" in message
-    assert "AMD" in message and "amd.com" in message
-    assert "Intel" in message and "intel.com" in message
+    assert gpu_repair() in message
 
 
 def test_run_upscale_maps_other_failures_to_last_diagnostic_and_repair(
@@ -241,4 +240,4 @@ def test_run_upscale_maps_other_failures_to_last_diagnostic_and_repair(
     assert "exit code 7" in message
     assert "final useful line" in message
     assert "first detail" not in message
-    assert r"Run .\setup.ps1 again or pass --tool-dir" in message
+    assert runtime_repair() in message

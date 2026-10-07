@@ -7,12 +7,39 @@
 **番剧截图一键超分，自动生成适配当前屏幕、保留完整构图的高清 Windows 壁纸。** 完成首次
 安装后，把截图拖到桌面快捷方式，选择 2x/3x/4x；工作流会在本机自动检测物理屏幕和 Vulkan GPU。
 
-- 支持 Windows 10/11
+- 支持 Windows 10/11；新增 macOS 命令行与 Terminal 入口（Apple Silicon／Intel 运行时）
 - 全程本地处理，不上传截图
 - 使用官方 Real-ESRGAN NCNN/Vulkan 推理
 - 默认保留完整构图，不悄悄裁掉边缘内容
 
 [English](README.md)
+
+## macOS 安装
+
+使用含此次适配的源码分支；现有 Windows 发布 ZIP 尚不包含 macOS 支持。
+先安装 Python 3.10 或更新版本，再双击 `install.command`，或在 Terminal 执行：
+
+```bash
+./install.command
+.venv/bin/python scripts/upscale_wallpaper.py --input "/图片路径/image.png" --scale 4
+```
+
+安装器会先展示上游条款并请求确认，再下载约 52 MB 的官方 macOS 通用运行时，校验
+压缩包及每个安装文件，创建项目内 `.venv`，并可选注册 Codex skill 符号链接。已有 skill
+目录或链接会保留。运行时包含原生 arm64／x86_64 程序，通过自带 MoltenVK 使用 Metal；
+无需 CUDA、PyTorch、Homebrew 或额外 GPU 驱动。首次编译着色器可能较慢。
+
+Terminal 入口为 `./scripts/run-wallpaper.command "/图片或文件夹路径"`，会询问一次
+2／3／4 倍；双击入口会询问输入路径。macOS 入口不创建 Windows 的拖放桌面快捷方式。
+两平台共用命令行参数、批处理、对比图、保留构图和 `--copy-desktop`。
+`--target auto` 检测主显示器物理分辨率，支持 Retina；也可用 `--target 2560x1664`
+手动指定。结果默认在 Finder 打开，可用 `--no-open-output` 关闭。
+
+无人值守安装需先阅读 [第三方声明](THIRD_PARTY_NOTICES.md)，再传
+`--accept-upstream-license`；`--skip-skill` 跳过 skill 注册。已有官方 ZIP 可用
+`--archive /路径/realesrgan-ncnn-vulkan-20220424-macos.zip`，仍执行相同校验。
+若 macOS 拦截经过校验的程序，在“系统设置 → 隐私与安全性”允许该程序；保持 Gatekeeper
+开启。[本机验证记录](docs/macos-verification.md)。
 
 ## 从番剧截图到桌面壁纸
 
