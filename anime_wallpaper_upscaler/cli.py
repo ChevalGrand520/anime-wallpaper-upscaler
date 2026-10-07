@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import math
 import os
+import subprocess
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -10,12 +11,15 @@ from pathlib import Path
 from .discovery import InputJob, discover_jobs
 from .errors import UpscalerError
 from .realesrgan import resolve_model, validate_runtime
-from .system import probe_gpus, resolve_gpu, resolve_target
+from .system import probe_gpus, resolve_gpu, resolve_target, runtime_repair
 from .workflow import BatchSummary, ProcessingOptions, process_batch
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_TOOL_DIR = (
-    PROJECT_ROOT / "tools" / "realesrgan-ncnn-vulkan-20220424-windows"
+    PROJECT_ROOT / "tools" / (
+        "realesrgan-ncnn-vulkan-20220424-macos" if sys.platform == "darwin"
+        else "realesrgan-ncnn-vulkan-20220424-windows"
+    )
 )
 
 
@@ -171,17 +175,20 @@ def _report_summary(summary: BatchSummary) -> None:
 def _open_successful_roots(summary: BatchSummary) -> None:
     roots = tuple(dict.fromkeys(result.output_root for result in summary.results))
     startfile = getattr(os, "startfile", None)
-    if startfile is None and roots:
+    if startfile is None and sys.platform != "darwin" and roots:
         print(
-            "Warning: output folders can only be opened automatically on Windows.",
+            "Warning: output folders can only be opened automatically on Windows or macOS.",
             file=sys.stderr,
         )
         return
 
     for root in roots:
         try:
-            startfile(str(root))
-        except OSError as exc:
+            if startfile is not None:
+                startfile(str(root))
+            else:
+                subprocess.run(["/usr/bin/open", str(root)], check=True)
+        except (OSError, subprocess.CalledProcessError) as exc:
             print(f"Warning: could not open output folder {root}: {exc}", file=sys.stderr)
 
 
@@ -208,7 +215,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     except OSError as exc:
         print(
             "Error: Could not start the Real-ESRGAN GPU probe: "
-            f"{exc}. Run .\\setup.ps1 again or pass --tool-dir.",
+            f"{exc}. {runtime_repair()}",
             file=sys.stderr,
         )
         return 2

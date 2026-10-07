@@ -165,7 +165,7 @@ def test_main_builds_options_reports_devices_and_opens_each_root_once(
         cli, "resolve_target", lambda value: ((3840, 2160), None)
     )
     monkeypatch.setattr(cli, "process_batch", fake_process_batch)
-    monkeypatch.setattr(os, "startfile", lambda path: opened.append(Path(path)))
+    monkeypatch.setattr(os, "startfile", lambda path: opened.append(Path(path)), raising=False)
 
     exit_code = cli.main(
         [
@@ -265,6 +265,7 @@ def test_partial_batch_failure_returns_one_without_opening_output(
         os,
         "startfile",
         lambda path: pytest.fail("--no-open-output must suppress startfile"),
+        raising=False,
     )
 
     exit_code = cli.main(["--input", str(source), "--no-open-output"])

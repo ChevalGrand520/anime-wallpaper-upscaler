@@ -5,7 +5,7 @@ description: Use when the user wants an anime, illustration, game, or wallpaper 
 
 # Anime Wallpaper Upscale
 
-This is the Agent-facing entry point for the Windows wallpaper workflow. Translate a user's
+This is the Agent-facing entry point for the Windows and macOS wallpaper workflow. Translate a user's
 plain-language request into an explicit local wrapper command, then turn one or more
 low-resolution anime-style images into screen-ready wallpapers. Files and whole folders are
 supported.
@@ -21,6 +21,15 @@ Do not use Stable Diffusion, img2img, or other generative redraw workflows unles
 explicitly asks for a redraw or accepts altering the original art style and details.
 
 ## Setup
+
+On macOS with Python 3.10+, run `./install.command`. It installs a verified official universal
+macOS runtime, a project `.venv`, and an optional skill symlink (preserving existing conflicts).
+Read `THIRD_PARTY_NOTICES.md` before unattended setup with `--accept-upstream-license`.
+Use `.venv/bin/python scripts/upscale_wallpaper.py --input "/path/to/image.png" --scale 4`.
+The macOS runtime executable is `realesrgan-ncnn-vulkan` (without `.exe`), with the same model
+paths. It uses bundled MoltenVK/Metal. Do not install Windows GPU drivers or disable Gatekeeper.
+The Terminal launcher is `./scripts/run-wallpaper.command "/path/to/image or folder"`.
+On macOS, repair missing runtime files by rerunning `./install.command`.
 
 For ordinary Windows users, double-click `install.cmd`. The equivalent PowerShell command is:
 
@@ -110,7 +119,7 @@ Important options:
 ## Tool Expectations
 
 The script expects the verified official Real-ESRGAN NCNN/Vulkan runtime installed by
-`install.cmd`/`setup.ps1`. The drag/drop launcher automatically starts setup if Python, the
+`install.cmd`/`setup.ps1` on Windows or `install.command` on macOS. The launcher starts setup if Python, the
 executable, or any pinned model is missing. An advanced user may instead pass an existing
 runtime directory with `--tool-dir` or set `REALESRGAN_TOOL_DIR`.
 

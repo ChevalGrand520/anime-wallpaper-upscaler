@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import ctypes
+import json
+import os
 import re
 import subprocess
+import sys
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -58,6 +61,8 @@ def _enable_dpi_awareness(user32: Any) -> None:
 
 
 def get_primary_display_resolution(*, user32: Any | None = None) -> tuple[int, int]:
+    if user32 is None and sys.platform == "darwin":
+        return get_macos_display_resolution()
     try:
         active_user32 = user32 if user32 is not None else ctypes.windll.user32
         _enable_dpi_awareness(active_user32)
@@ -75,6 +80,61 @@ def get_primary_display_resolution(*, user32: Any | None = None) -> tuple[int, i
             f"({width}x{height}); expected at least 320x200"
         )
     return width, height
+
+
+def get_macos_display_resolution(
+    runner: Callable[..., subprocess.CompletedProcess[str]] = subprocess.run,
+) -> tuple[int, int]:
+    """Read the main panel's physical resolution, not Retina points or scaled backing pixels."""
+    try:
+        result = runner(
+            ["/usr/sbin/system_profiler", "SPDisplaysDataType", "-json"],
+            capture_output=True, text=True, encoding="utf-8", check=True, timeout=20,
+            env={**os.environ, "LC_ALL": "C"},
+        )
+        report = json.loads(result.stdout)
+        for gpu in report["SPDisplaysDataType"]:
+            for display in gpu.get("spdisplays_ndrvs", []):
+                if display.get("spdisplays_main") != "spdisplays_yes":
+                    continue
+                value = display.get("spdisplays_pixelresolution", "")
+                match = re.search(r"(\d+)\s*[xX]\s*(\d+)", value)
+                if match is None:
+                    raise ValueError("the main display has no physical pixel resolution")
+                width, height = (int(part) for part in match.groups())
+                if width < MINIMUM_DISPLAY_SIZE[0] or height < MINIMUM_DISPLAY_SIZE[1]:
+                    raise ValueError(f"invalid primary display size ({width}x{height})")
+                return width, height
+        raise ValueError("no main display was reported")
+    except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError) as exc:
+        raise OSError(f"macOS display detection failed: {exc}") from exc
+
+
+def runtime_executable_name() -> str:
+    return "realesrgan-ncnn-vulkan" if sys.platform == "darwin" else "realesrgan-ncnn-vulkan.exe"
+
+
+def runtime_repair() -> str:
+    return (
+        "Run ./install.command again or pass --tool-dir."
+        if sys.platform == "darwin"
+        else r"Run .\setup.ps1 again or pass --tool-dir."
+    )
+
+
+def gpu_repair() -> str:
+    if sys.platform == "darwin":
+        return (
+            "Use the official macOS runtime installed by ./install.command. "
+            "It bundles MoltenVK for Metal; no NVIDIA/AMD/Intel driver installation is needed. "
+            "Check macOS updates and rerun setup."
+        )
+    return (
+        "Update the GPU driver and try again:\n"
+        "NVIDIA: https://www.nvidia.com/Download/index.aspx\n"
+        "AMD: https://www.amd.com/en/support/download/drivers.html\n"
+        "Intel: https://www.intel.com/content/www/us/en/download-center/home.html"
+    )
 
 
 def resolve_target(
@@ -147,13 +207,7 @@ def probe_gpus(
     if devices:
         return devices
 
-    raise VulkanError(
-        "No Vulkan GPU was reported by realesrgan-ncnn-vulkan. Update the GPU "
-        "driver and try again:\n"
-        "NVIDIA: https://www.nvidia.com/Download/index.aspx\n"
-        "AMD: https://www.amd.com/en/support/download/drivers.html\n"
-        "Intel: https://www.intel.com/content/www/us/en/download-center/home.html"
-    )
+    raise VulkanError("No Vulkan GPU was reported by realesrgan-ncnn-vulkan. " + gpu_repair())
 
 
 def resolve_gpu(value: str, devices: Sequence[GpuDevice]) -> int | None:

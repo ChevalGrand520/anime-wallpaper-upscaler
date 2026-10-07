@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .errors import DependencyError, VulkanError
+from .system import gpu_repair, runtime_executable_name, runtime_repair
 
 SUPPORTED_SCALES = frozenset({2, 3, 4})
 FIXED_4X_MODELS = frozenset(
@@ -16,14 +17,6 @@ FIXED_4X_MODELS = frozenset(
     }
 )
 ANIME_VIDEO_MODEL = "realesr-animevideov3"
-
-_RUNTIME_REPAIR = r"Run .\setup.ps1 again or pass --tool-dir."
-_DRIVER_REPAIR = (
-    "Update the GPU driver and try again:\n"
-    "NVIDIA: https://www.nvidia.com/Download/index.aspx\n"
-    "AMD: https://www.amd.com/en/support/download/drivers.html\n"
-    "Intel: https://www.intel.com/content/www/us/en/download-center/home.html"
-)
 
 
 @dataclass(frozen=True, slots=True)
@@ -59,7 +52,7 @@ def validate_runtime(tool_dir: Path, model: str, scale: int) -> RuntimeFiles:
     resolved_tool_dir = tool_dir.expanduser().resolve()
     model_stem = _model_file_stem(resolved_model, scale)
     runtime = RuntimeFiles(
-        executable=resolved_tool_dir / "realesrgan-ncnn-vulkan.exe",
+        executable=resolved_tool_dir / runtime_executable_name(),
         model_param=resolved_tool_dir / "models" / f"{model_stem}.param",
         model_bin=resolved_tool_dir / "models" / f"{model_stem}.bin",
     )
@@ -73,7 +66,7 @@ def validate_runtime(tool_dir: Path, model: str, scale: int) -> RuntimeFiles:
         raise DependencyError(
             "Missing official Real-ESRGAN runtime file(s):\n"
             f"{details}\n"
-            f"{_RUNTIME_REPAIR}"
+            f"{runtime_repair()}"
         )
     return runtime
 
@@ -153,7 +146,7 @@ def run_upscale(
         )
     except OSError as exc:
         raise DependencyError(
-            f"Could not start realesrgan-ncnn-vulkan: {exc}. {_RUNTIME_REPAIR}"
+            f"Could not start realesrgan-ncnn-vulkan: {exc}. {runtime_repair()}"
         ) from exc
 
     if result.returncode == 0:
@@ -168,10 +161,10 @@ def run_upscale(
     ):
         raise VulkanError(
             "Real-ESRGAN could not initialize Vulkan "
-            f"(exit code {result.returncode}): {final_line}\n{_DRIVER_REPAIR}"
+            f"(exit code {result.returncode}): {final_line}\n{gpu_repair()}"
         )
 
     raise DependencyError(
         "Real-ESRGAN failed "
-        f"(exit code {result.returncode}): {final_line}\n{_RUNTIME_REPAIR}"
+        f"(exit code {result.returncode}): {final_line}\n{runtime_repair()}"
     )
